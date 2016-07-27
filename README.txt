@@ -1,6 +1,6 @@
 ## Synopsis
 
-Source code for the chess game project you can see at rakiah.com/en/ChessGame/
+Source code for the chess game project you can see at Rakiah.com/Chess/
 
 
 ## Why ?
