@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class MouseCase : MonoBehaviour 
 {
@@ -30,23 +31,21 @@ public class MouseCase : MonoBehaviour
 
 	public new Transform camera;
 
+	public GameObject CheckMateLabel;
+	public Text CheckMateText;
 
-	void OnGUI ()
+	public void TriggerShowMovement()
 	{
-		if(ShowEchec)
-		{
-			GUI.Label(new Rect(950,800,300,300),"Echec");
-		}
-		if(ShowMat)
-		{
-			GUI.Label(new Rect(950,850,300,300),"Mat");
-		}
-
-		if(GUI.Button(new Rect(0,0,150,20), "show movements") && !isShowingMovements)
+		if (!isShowingMovements)
 			StartCoroutine(showMovement());
-		if(GUI.Button(new Rect(0,20,150,20),"reset") && !isReseting)
+	}
+
+	public void TriggerReset()
+	{
+		if (!isReseting)
 			StartCoroutine(Reset());
 	}
+
 	void Start () 
 	{
 		SelectorCase = GameObject.Find("Selector");
@@ -177,22 +176,24 @@ public class MouseCase : MonoBehaviour
 		activeCase = null;
 		DeselectCase();
 		StartCoroutine(NextTurn());
-		//StartCoroutine(MoveTo(Black == true ? posBlack : posWhite));
 	}
 
 	public IEnumerator NextTurn ()
 	{
-		if(StaticClass.m_sTools.PieceEchec(setupBoard.board, GetKing()) != null) ShowEchec = true;
-		if(StaticClass.m_sTools.GetPossibleMove(Black) <= 0) ShowMat = true;
-		
-		if(ShowEchec || ShowMat) yield return new WaitForSeconds(3.5f);
+		CheckMateText.text = "";
+		if (StaticClass.m_sTools.PieceEchec(setupBoard.board, GetKing()) != null) CheckMateText.text = "Check";
+		if (StaticClass.m_sTools.GetPossibleMove(Black) <= 0) CheckMateText.text += "Mate";
 
-		if(ShowMat) StartCoroutine(Reset());
-		
-		ShowMat = false;
-		ShowEchec = false;
+		if (CheckMateText.text != "")
+		{
+			CheckMateLabel.SetActive(true);
+			yield return new WaitForSeconds(3.5f);
+			CheckMateLabel.SetActive(false);
+		}
 
-		if(Black) CanPlay = true;
+		if(CheckMateText.text == "CheckMate") StartCoroutine(Reset());
+		
+		if (Black) CanPlay = true;
 		else  StartCoroutine(getDecisions(Black));
 	
 	}
@@ -213,7 +214,6 @@ public class MouseCase : MonoBehaviour
 
 	IEnumerator getDecisions (bool color)
 	{
-		//yield return new WaitForSeconds(0.5f);
 		List<Decision> choices = new List<Decision>();
 		foreach(ChessMan c in Pieces)
 		{
@@ -239,7 +239,7 @@ public class MouseCase : MonoBehaviour
 		if(bestDecision != null)
 		{
 			Debug.Log("decided to move on " + bestDecision.decision.value.ToString() + " as value, the case" + bestDecision.chess.position.ToString() + bestDecision.decision.choice.position.ToString());
-			Debug.Log("decision : "+bestDecision.decision.apparentReason);
+			Debug.Log("decision : " + bestDecision.decision.apparentReason);
 
 			activeCase = setupBoard.board[bestDecision.chess.position.x, bestDecision.chess.position.y];
 			activeCase.SetSelector(true, StaticClass.m_sTools.selectorCase);
